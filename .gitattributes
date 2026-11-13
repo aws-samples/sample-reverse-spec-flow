@@ -1,0 +1,12 @@
+# 【行末は LF に固定する】Windows 既定の `core.autocrlf=true` でクローンすると
+# **`gates.sh` 自身が CRLF になって読めなくなる**。しかも失敗の出方が誤診を招く
+# （実測: `set: pipefail: invalid option name` の後に
+#  「ERROR: git リポジトリ内で実行してください」＝リポジトリの中にいるのに、そう報告する）。
+# 設定値の CR 剥がし（gates.sh）はその先の防御であって、これの代わりにはならない。
+* text=auto eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.tsv text eol=lf
+*.env text eol=lf
+*.template text eol=lf
+*.allow text eol=lf
