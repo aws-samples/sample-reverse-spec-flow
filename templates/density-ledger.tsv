@@ -1,0 +1,45 @@
+block_id	spec_file	category	density_status	verify_status	fabricated_found	fabricated_open	verified_at	verifier	notes
+# 密度台帳（GP-20 の密度ギャップ台帳 + GP-22 の verify 列。この TSV が正本＝Markdown 表は生成物）
+# block_id:         密度昇格ブロックの一意 ID（DB-001, DB-002, ...）。
+#                   【粒度上限】1 ブロック = 主張 15 件以下（本文 8KB 以下）。束ねてよいのは同じファイルの同じ節の中（GP-103 ルール1）。
+#                   主張の数え方 = 手順書 Step 3-0b ④ の定義（`path:line` またはファイル名を省いた `:NN` を含む行 ＋ コード表記で始まる表の行。列 43 件は 43 主張＝1 ブロックにしない）。
+#                   超えたら分割して別 block_id を採る（分母の縮小ではないので ADR 不要）。GP-103 / SB-102・ゲート G-BLOCK-SIZE。
+#                   【必須】ブロック本文を仕様側でマーカーで囲む（G-BLOCK-SIZE が per-block で測るため）:
+#                     <!-- density-block: DB-001（任意の説明） -->
+#                     …本文…
+#                     <!-- /density-block: DB-001 -->
+#                     ※ 開始・終了は**独立した行**に置く。同一行に書くと G-BLOCK-SIZE が
+#                        粒度を測れず INCOMPLETE になる（G-BLOCK-OUTSIDE は止めない）。
+#                     ※ ブロックを**入れ子にしない**（入れ子はブロックの境界をぼかす。GP-103 ルール1）。
+#                        入れ子は G-BLOCK-OUTSIDE が INCOMPLETE で止める。
+#                   マーカーが無いと粒度を測定できず INCOMPLETE になる（ファイル平均の近似は
+#                   実測で両方向に外れた——不均等なブロックが平均に埋もれ、ブロック外の散文で水増しされる）。
+#                   1 主張 = 1 行（`path:line` を含む行 ＋ 先頭がコード表記の表データ行）。出現回数ではない。
+#                   ※ fabricated=0 は全数合格ゲートなので、単位が大きいと収束しない（FB-7: 100 主張で 7 ラウンド／未収束）。
+# spec_file:        ブロックが属する仕様ファイル。**リポジトリルートからの相対パスで書く**
+#                     （例: specs/api/order.md）。G-LEDGER は末尾一致＋パス境界で照合するので
+#                     `api/order.md` や `order.md` でも通るが、**ファイル名だけで書くと
+#                     同名の別ディレクトリの仕様も「登録済み」と見なされる**（例: specs/data/order.md）。
+#                     取り違えを避けるため必ずパスまで書くこと。
+#                     ※ G-LEDGER は「主張を持つ仕様が 1 ブロックも登録されていないか」も見る
+#                       （台帳が空でも・無くても）。索引・生成物は front-matter に
+#                       `category: index` / `coverage-status: generated` があれば対象外。
+# category:         modules | api | data | behavior | rebuild
+# density_status:   thick（実装に足る）| thin（地図のまま）| missing（対象ごと欠落）   ← GP-20 ルール4 の判定
+#                   本質層（specs/rebuild/）のブロックは、参照する実装事実層のブロックと合わせて判定する（GP-20 ルール4）
+# verify_status:    unverified | verifying | repairing | verified                      ← GP-22。verified 以外は完了・レディ母数に入れない（SB-21）
+# fabricated_found: Verify で検出された fabricated 指摘の累計件数（数値。未 Verify は -）
+# fabricated_open:  未修復の fabricated 件数（数値。反映ゲートは fabricated_open=0 = SB-20。未 Verify は -）
+# verified_at:      最終 Verify 日（YYYY-MM-DD。未 Verify は -）
+# verifier:         検証手段（subagent-isolated | prompt-isolated | fresh-context | human。GP-16 ルール8 の段階的縮退）
+#                   subagent-isolated = 読み取りを解析対象ソースに機械で制限し、隔離を確認した検証官（HOST.md「検証官の隔離」節）
+#                   prompt-isolated   = 手段が無いホストで、指示文の規律だけで隔離した検証官（明示格下げ。SB-12）
+#                   fresh-context     = 生成者とは**別のセッション（別プロセス）**で、ブロック本文と原典パスだけから検証した（GP-16 ルール8 (2)）。
+#                                       同じセッションの中でコンテキストを切り直した形は含まない（SB-12。その形では verified にしない）
+#                   human             = 人が原典と突き合わせて検証した（GP-16 ルール8 (3)）
+#                   verified / repairing の行は必須（語彙外・空・- は G-VERIFIER が落とす）。subagent-isolated 以外の
+#                   verified は rebuild-readiness.md の「検証手段の内訳」に件数を書く（purpose=rebuild）
+# notes:            自由記述（Repair の要点など）。主張数とラウンドごとの fabricated 推移を残す（HOLD-9 の分母）。
+#                   巡ごとに修復が作った誤りの件数を `repair-induced: N` で書く（HOLD-9 の巡数に数えない。総数は 5 巡まで。GP-103 ルール3）
+#                   HOLD-9 の (A) で切り出したブロックは `hold9-split-from: DB-N` を書く（2 段重ねは G-LEDGER が落とす。GP-103 ルール3）
+# --- データ行は下に追記（タブ区切り。コメント行は # 始まり） ---
